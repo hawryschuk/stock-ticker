@@ -1,0 +1,35 @@
+{
+  "compileOnSave": true,
+  "include": [
+    "business",
+    "cli.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "*.spec.ts"
+  ],
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "target": "es6",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "mocha",
+      "chai"
+    ],
+    "lib": [
+      "es6"
+    ]
+  }
+}

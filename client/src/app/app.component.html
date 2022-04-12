@@ -1,0 +1,50 @@
+<h1>Stock Ticker</h1>
+
+<!-- Prompt Area -->
+<div *ngIf="prompt">
+    <!-- {{prompt | json }} -->
+    <div class="message">{{prompt.message}}</div>
+
+    <ng-container *ngIf="prompt.type=='text'">
+        <button (click)="confirm=input.value">save</button>
+        <input
+            #input
+            type="text"
+            value
+        >
+    </ng-container>
+
+    <ng-container *ngIf="prompt.type=='number'">
+        <button (click)="confirm=input.value">save</button>
+        <input
+            #input
+            type="number"
+            [min]="prompt.min"
+            [max]="prompt.max"
+            [value]="prompt.initial"
+            [placeholder]="prompt.min + '-' + prompt.max"
+        >
+    </ng-container>
+
+    <ng-container *ngIf="prompt.type=='select'">
+        <ul>
+            <li *ngFor="let choice of prompt.choices">
+                <button (click)="confirm=choice.value">select</button>
+                <span [title]="choice.description">{{choice.title}}</span>
+            </li>
+        </ul>
+    </ng-container>
+
+    <ng-container *ngIf="prompt.type=='confirm'">
+        <button (click)="confirm = false">no</button>
+        <button (click)="confirm = true">yes</button>
+    </ng-container>
+</div>
+
+<!-- STDOUT -->
+<div
+    id="stdout"
+    style="font-family: 'Courier New', Courier, monospace; white-space: pre;"
+    [innerHTML]="stdout"
+>
+</div>

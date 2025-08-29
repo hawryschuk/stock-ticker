@@ -1,35 +1,52 @@
 // https://magisterrex.files.wordpress.com/2014/07/stocktickerrules.pdf
 
-import { Component, Input, OnInit } from '@angular/core';
-import { Terminal } from '@hawryschuk-terminal-restapi';
-import { StockTickerService } from '../../../business/game';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Util } from '@hawryschuk-common/util';
+import { ServiceCenterClient, Terminal } from '@hawryschuk-terminal-restapi';
+import { StockTicker, Trade, GamePlay } from '../../../StockTicker';
+import { FormsModule, NgForm } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
+  imports: [CommonModule, FormsModule],
   selector: 'app-stock-ticker',
   templateUrl: './stock-ticker.component.html',
   styleUrls: ['./stock-ticker.component.scss'],
-  standalone: true
+  standalone: true,
 })
-export class StockTickerComponent implements OnInit {
-
-  ngOnInit(): void { }
+export class StockTickerComponent implements OnInit, OnDestroy {
 
   @Input({ required: true }) terminal!: Terminal;
 
-  parseInt = parseInt;
+  StockTicker = StockTicker;
+  game?: StockTicker;
+  trades: Trade[] = StockTicker.STOCKS.map(stock => <Trade>{ type: 'buy', stock, shares: 0 });
+  get client() { return ServiceCenterClient.getInstance<GamePlay>(this.terminal); }
+  private get Game() { return this.client.Table ? new StockTicker(this.client.Table!.sitting, this.client.ServiceMessages) : undefined }
 
-  canBuy(commodity: string, units: any) { return units > 0 && this.game.turn.terminal.promptedFor({ name: 'stock-ticker-action', value: 'buy-' + commodity }) }
-  canSell(commodity: string, units: any) { return units < 0 && this.game.turn.terminal.promptedFor({ name: 'stock-ticker-action', value: 'sell-' + commodity }) }
+  ngOnDestroy(): void { };
 
-  buy(commodity: string, units: any) { this.game.turn.terminal.answer({ 'stock-ticker-action': `buy-${commodity}`, units: Math.abs(parseInt(units)) }) }
-  sell(commodity: string, units: any) { this.game.turn.terminal.answer({ 'stock-ticker-action': `sell-${commodity}`, units: Math.abs(parseInt(units)) }) }
-
-  async rollDice() {
-    this.api.load({
-      title: 'roll-dice',
-      block: async () => await this.game.turn.terminal.answer({
-        'stock-ticker-action': `roll-dice`
-      })
-    });
+  ngOnInit() {
+    Object.assign(window, { app: this });
+    this.ngOnDestroy = this.terminal
+      .subscribe({ handler: () => this.game = this.Game })
+      .unsubscribe;
   }
+
+  async SubmitTrade() {
+    await this.terminal.respond(JSON.stringify(this.trades.filter(t => t.shares)), 'trades');
+    for (const trade of this.trades)
+      Object.assign(trade, { shares: 0, type: 'buy' });
+  }
+
+  async testTrade(trade: Trade) {
+    await Util.pause(100);
+    try { this.Game!.trades = this.trades; }
+    catch (e) {
+      alert(e);
+      trade.shares = 0;
+      this.trades = [...this.trades];
+    }
+  }
+
 }

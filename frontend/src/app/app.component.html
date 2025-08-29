@@ -4,48 +4,7 @@
 
   <app-table-service [terminal]="terminal" [serviceCenter]="serviceCenter">
 
-    <div *ngIf="terminal.input.service == 'Stock Ticker'">
-      <div class="game-over" *ngIf="client.ServiceEnded"> Game Over!! </div>
-      <div class="won" *ngIf="client.Won"> You won =) </div>
-      <div class="won" *ngIf="client.Lost"> You lost! </div>
-      <form *ngIf="terminal.prompts.trades" #form="ngForm" (ngSubmit)="AddTrade(form);">
-        <table>
-          <caption>Trades</caption>
-
-          <thead>
-            <tr>
-              <td>
-                <select [(ngModel)]="trade.type" required name="type">
-                  <option *ngFor="let type of StockTicker.TRADE_TYPES" [value]="type">{{type}}</option>
-                </select>
-              </td>
-              <td>
-                <select [(ngModel)]="trade.stock" required name="stock">
-                  <option *ngFor="let stock of StockTicker.STOCKS" [value]="stock">{{stock}}</option>
-                </select>
-              </td>
-              <td> <input [(ngModel)]="trade.shares" required type="number" name="shares" min="1" step="1" value="10">
-              </td>
-
-              <td> <button [disabled]="!form.valid" type="submit"> Add </button></td>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr *ngFor="let trade of trades">
-              <td> {{trade.type}} </td>
-              <td> {{trade.stock}} </td>
-              <td> {{trade.shares}} </td>
-            </tr>
-          </tbody>
-
-          <tfoot>
-            <button [disabled]="!trades.length" type="button" (click)="SubmitTrade()"> Submit Trade </button>
-          </tfoot>
-        </table>
-      </form>
-    </div>
-
+    <app-stock-ticker [terminal]="terminal"></app-stock-ticker>
 
   </app-table-service>
 

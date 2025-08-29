@@ -14,9 +14,6 @@
         "./*",
         "../*",
         "../../*"
-      ],
-      "@angular/*": [
-        "node_modules/@angular/*"
       ]
     },
     "types": [

@@ -1,0 +1,23 @@
+.last {
+    font-weight: bold;
+}
+
+[data-sign="-1"] {
+    background-color: red;
+}
+
+[data-sign="1"] {
+    background-color: green;
+}
+
+#state {
+    th,
+    td {
+        text-align: left;
+    }
+}
+
+#trades button.selected {
+    font-weight: bold;
+    background-color: burlywood;
+}

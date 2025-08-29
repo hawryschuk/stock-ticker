@@ -1,42 +1,21 @@
 // https://magisterrex.files.wordpress.com/2014/07/stocktickerrules.pdf
 
 import { Util } from "@hawryschuk-common/util";
-import { BaseService, Table, ServiceCenterClient, Messaging } from "@hawryschuk-terminal-restapi";
 
-// export const MOVEMENTS = [10, 20, 30, -10, -20, -30] as const;
 export type Movement = typeof StockTicker['MOVEMENTS'][number];
-
-// export const COMMODITIES = ['oil', 'bonds', 'gold', 'silver', 'grain', 'industrial'] as const;
 export type Stock = typeof StockTicker['STOCKS'][number];
-
-// export const DIVIDENDS = [0, 10, 20, 30, 40, 50] as const;
 export type Dividend = typeof StockTicker['DIVIDENDS'][number];
-
 export type TradeType = typeof StockTicker['TRADE_TYPES'][number];
 
-export type Roll = {
-    stock: Stock;
-    movement: Movement;
-    dividend: Dividend;
-};
-
-export type Trade = {
-    type: TradeType;
-    stock: Stock;
-    shares: number;
-};
-
-export type GamePlay = {
-    turn: number;
-    trades: StockTicker['trades'];
-    roll: Roll;
-}
+export type Roll = { stock: Stock; movement: Movement; dividend: Dividend; };
+export type Trade = { type: TradeType; stock: Stock; shares: number; };
+export type GamePlay = { trades?: StockTicker['trades']; roll?: Roll; turn?: number; };
 
 export class Player {
     cash = 5000;
     stocks: Record<string, number> = StockTicker.STOCKS.reduce((stocks, stock) => ({ ...stocks, [stock]: 0 }), {});
     turns = 0;
-    constructor(public prices: StockTicker['prices']) { }
+    constructor(public name: string, public prices: StockTicker['prices']) { }
     get worth() { return Object.entries(this.stocks).reduce((worth, [stock, shares]) => worth + shares * this.prices[stock], this.cash); }
 }
 
@@ -47,12 +26,12 @@ export class StockTicker {
     static TRADE_TYPES = ['buy', 'sell'] as const;
     static DIVIDENDS = [0, 10, 20, 30, 40, 50] as const;
 
-    turn = 0;
+    turn = 1;
     players!: Player[];
     prices: Record<string, number> = StockTicker.STOCKS.reduce((prices, name) => ({ ...prices, [name]: 1 }), {});
 
-    constructor(seats: number, actions: GamePlay[]) {
-        this.players = new Array(seats).fill(undefined).map(() => new Player(this.prices));
+    constructor(players: string[], actions: GamePlay[] = []) {
+        this.players = players.map(name => new Player(name, this.prices));
         for (const { turn, trades, roll } of actions) {
             if (turn) this.turn = turn;
             if (trades) this.trades = trades;
@@ -76,11 +55,10 @@ export class StockTicker {
         }
     }
 
+    rolls: Roll[] = [];
     set roll(roll: Roll) {
-        this.player.turns++;
-
         /** Price movement */
-        this.prices[roll.stock] += roll.movement;
+        this.prices[roll.stock] += roll.movement / 100;
 
         /** Stock Split */
         if (this.prices[roll.stock] >= 2) {
@@ -100,6 +78,11 @@ export class StockTicker {
         if (this.prices[roll.stock] >= 1)
             for (const player of this.players)
                 player.cash += roll.dividend * Math.floor(player.stocks[roll.stock] / 1000);
+
+        /** Track #turns, #rolls, and move to the next player */
+        this.player.turns++;
+        this.rolls.push(roll);
+        this.turn = 1 + this.turn % this.players.length;
     }
 
     get roll() {
@@ -111,7 +94,7 @@ export class StockTicker {
     }
 
     get winners(): number[] | undefined {
-        return this.players.every(p => p.turns >= 2)
+        return this.players.every(p => p.turns >= 5)
             ? (() => {
                 const players = this
                     .players
@@ -124,40 +107,4 @@ export class StockTicker {
     }
 }
 
-/** Stock-Ticker : spot prices, player assets */
-export class StockTickerService extends BaseService {
-    static USERS = '*' as '*';
-    static NAME = 'Stock Ticker';
-
-    constructor(table: Table<BaseService>, id = Util.UUID) { super(table, id); }
-
-    get State() {
-        return new StockTicker(
-            this.table.seats,
-            new ServiceCenterClient<GamePlay>(this.terminals[0]).ServiceMessages
-        );
-    }
-
-    /** We allow the game to continue where it left off */
-    async start() {
-        while (true) {
-            const { winners } = await Util.waitUntil(async () => {
-                const { State } = this;
-                const { roll } = State;
-                const turn = State.turn = State.turn < this.terminals.length ? State.turn + 1 : 1;
-                const trades = JSON.parse(await this.terminals[turn - 1].prompt({ name: 'trades', type: 'text', clobber: true }));
-                Object.assign(State, { trades, roll, turn });
-                await this.broadcast<GamePlay>({ trades, roll, turn });
-                return State;
-            });
-
-            if (winners)
-                return {
-                    winners: this.terminals.filter((t, index) => winners.includes(index)),
-                    losers: this.terminals.filter((t, index) => !winners.includes(index)),
-                }
-        }
-    }
-
-}
 

@@ -1,73 +1,78 @@
-<ng-container *ngIf="{ form : {} } as vars">
+<div id="results">
+    <div class="game-over" *ngIf="client.ServiceEnded"> Game Over!! </div>
+    <div class="won" *ngIf="client.Won"> You won !! </div>
+    <div class="won" *ngIf="client.Lost"> You lost! </div>
+</div>
 
-    <div style="position: absolute; background-color: white; border: 1px solid black; width: 200px; height: 200px; margin-left: 20px; margin-top: 20px;"
-        *ngIf="terminal.prompts.ack_game" class="ack_game">
-        {{ terminal.prompts.ack_game[0].message }}
-        <button (click)="terminal.respond('','ack_game')"> ok </button>
-    </div>
+<div style="display: flex; flex-direction: row;">
+    <form *ngIf="game" #form="ngForm" style="flex:1">
+        <table id="state">
+            <thead id="stocks">
+                <caption>stocks</caption>
+                <tr>
+                    <td colspan=3></td>
+                    <th *ngFor="let stock of StockTicker.STOCKS"> {{stock}} </th>
+                </tr>
+            </thead>
 
-    <div class="commodities">
-        <span
-            style="display: inline-block; width: calc(-7px + 100% / {{game.Commodities.length}}); margin-right: 3px; border: 1px solid black; background-color: grey;"
-            *ngFor="let c of game.Commodities; let i = index" class="commoditity">
+            <thead id="prices">
+                <caption>prices</caption>
+                <tr>
+                    <td colspan=3></td>
+                    <th *ngFor="let stock of StockTicker.STOCKS"
+                        [attr.data-sign]="game.rolls.at(-1)?.stock==stock ? game.rolls.at(-1)?.movement!>0 ? 1 : -1 : 0"
+                        [class.last]="game.rolls.at(-1)?.stock==stock">
+                        {{game.prices[stock]}}
+                    </th>
+                </tr>
+            </thead>
 
-            {{c.name}}
+            <tbody id="players">
+                <caption>players</caption>
+                <tr [class.turn]="game.player==player" *ngFor="let player of game.players">
+                    <td class="name"> {{player.name}} </td>
+                    <td>{{player.cash}}</td>
+                    <td>{{player.worth}}</td>
+                    <td *ngFor="let stock of StockTicker.STOCKS" class="shares">
+                        {{player.stocks[stock]}}
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot id="trades" *ngIf="terminal.prompts.trades && game.player.stocks">
+                <tr>
+                    <td colspan=3> <button (click)="SubmitTrade()"> Submit Trade </button> </td>
+                    <td *ngFor="let trade of trades">
+                        <div>
+                            <button *ngFor="let tt of StockTicker.TRADE_TYPES"
+                                [disabled]="tt=='sell' && !game.player.stocks[trade.stock]"
+                                (click)="trade.type!=tt && ( (trade.type=tt) && (trade.shares=0) )"
+                                [class.selected]="trade.type==tt"> {{tt}}
+                            </button>
+                        </div>
 
-            <br>
-
-            {{ c.price | number }}
-
-        </span>
-    </div>
-
-    <div class="clear: both" class="players">
-        <div *ngFor="let player of game.players" class="player">
-
-            <div style="{{ game.turn==player ? 'font-weight:bold' : '' }}">
-
-                {{ player.name }} : ${{ player.cash | number }} cash, ${{ player.worth | number }} net worth
-
-                <button
-                    *ngIf="game.turn==player && game.turn.terminal.promptedFor({ name: 'stock-ticker-action', value: 'roll-dice' })"
-                    (click)="rollDice()">
-
-                    roll dice
-
-                </button>
-
-            </div>
-
-            <div *ngFor="let c of game.Commodities" [attr.data-commodity]="c.name"
-                style="display: inline-block; width: calc(-7px + 100% / {{game.Commodities.length}}); margin-right: 3px; border: 1px solid black; background-color: grey;"
-                class="asset">
-
-                <span class="units-held"> {{ player.assets[c.name] }} </span>
-
-                <div *ngIf="game.turn==player && (canBuy(c.name,1) || canSell(c.name,-1)) ">
-
-                    <input #i type="range" [min]="-player.assets[c.name]||0"
-                        [max]="player.cash / game.commodities[c.name].price" step="500">
-
-                    <div>
-
-                        <button *ngIf=" canBuy(c.name, i.value) " (click)="buy(c.name,i.value)">
-                            buy
-                        </button>
-
-                        <button *ngIf=" canSell(c.name, i.value) " (click)="sell(c.name,i.value)">
-                            sell
-                        </button>
-
-                        <span class="player-commodity-units-owned"> {{ i.value.startsWith('-') ? i.value.replace('-','')
-                            :
-                            i.value }} </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-</ng-container>
+                        <input (ngModelChange)="testTrade(trade)" type="number" name="shares" [(ngModel)]="trade.shares"
+                            [min]="0"
+                            [max]="trade.type=='buy' ? game.player.cash / game.prices[trade.stock] : game.player.stocks[trade.stock]">
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+    <table id="history" *ngIf="game" style="min-width: 300px; height: 100%; overflow: auto;">
+        <caption> roll history </caption>
+        <thead>
+            <tr>
+                <th> player </th>
+                <th> stock </th>
+                <th> movement </th>
+                <th> dividend </th>
+            </tr>
+        </thead>
+        <tr *ngFor="let roll of game.rolls; let index=index">
+            <td> {{ game.players[ index % game.players.length ].name }} </td>
+            <td> {{roll.stock}} </td>
+            <td> {{roll.movement}} </td>
+            <td> {{roll.dividend}} </td>
+        </tr>
+    </table>
+</div>

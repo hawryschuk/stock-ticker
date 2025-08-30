@@ -95,7 +95,7 @@ export class StockTicker {
     }
 
     get winners(): number[] | undefined {
-        return this.players.every(p => p.turns >= 5)
+        return this.players.every(p => p.turns >= 50)
             ? (() => {
                 const players = this
                     .players

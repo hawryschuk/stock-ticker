@@ -1,10 +1,10 @@
-<div id="results">
+<div class="results">
     <div class="game-over" *ngIf="client.Service?.Instance?.finished"> Game Over!! </div>
     <div class="won" *ngIf="client.Won"> You won !! </div>
     <div class="won" *ngIf="client.Lost"> You lost! </div>
 </div>
 
-<div style="display: flex; flex-direction: row;">
+<div class="wrapper">
     <form *ngIf="game" #form="ngForm" style="flex:1">
         <table id="state">
             <thead id="stocks">
@@ -38,7 +38,7 @@
                     </td>
                 </tr>
             </tbody>
-            <tfoot id="trades" *ngIf="terminal().prompts.trades && game.player.stocks">
+            <tfoot id="trades" *ngIf="terminal()!.prompts.trades && game.player.stocks">
                 <tr>
                     <td colspan=3> <button (click)="SubmitTrade()"> Submit Trade </button> </td>
                     <td *ngFor="let trade of trades">
@@ -58,7 +58,7 @@
             </tfoot>
         </table>
     </form>
-    <table id="history" *ngIf="game" style="min-width: 300px; height: 100%; overflow: auto;">
+    <table class="history" *ngIf="game">
         <caption> roll history </caption>
         <thead>
             <tr>
@@ -68,11 +68,14 @@
                 <th> dividend </th>
             </tr>
         </thead>
-        <tr *ngFor="let roll of game.rolls; let index=index">
-            <td> {{ game.players[ index % game.players.length ].name }} </td>
-            <td> {{roll.stock}} </td>
-            <td> {{roll.movement}} </td>
-            <td> {{roll.dividend}} </td>
-        </tr>
+        <tbody>
+            <tr *ngFor="let roll of game.rolls; let index=index">
+                <td> {{ game.players[ index % game.players.length ].name }} </td>
+                <td> {{roll.stock}} </td>
+                <td> {{roll.movement}} </td>
+                <td> {{roll.dividend}} </td>
+            </tr>
+        </tbody>
+        <tfoot></tfoot>
     </table>
 </div>

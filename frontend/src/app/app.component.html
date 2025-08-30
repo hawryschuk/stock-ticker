@@ -1,19 +1,9 @@
 <h1> Stock Ticker :: Sample </h1>
 
-<app-service-center [terminal]="terminal" [serviceCenter]="serviceCenter">
+<app-service-center [(terminals)]="terminals" [(terminal)]="terminal" [serviceCenter]="serviceCenter">
 
   <app-stock-ticker [terminal]="terminal"></app-stock-ticker>
 
   <div class="joined-mid-session">Instance is running. Please wait until the instance ends...</div>
 
 </app-service-center>
-
-<div id="terminals">
-  <div class="list">
-    <button class="add" (click)="addTerminal()"> + </button>
-    <button *ngFor="let t of terminals; let index=index" [disabled]="terminal==t" (click)="terminal=t">
-      TTY{{index+1}}
-    </button>
-  </div>
-  <app-terminal [terminal]="terminal"></app-terminal>
-</div>

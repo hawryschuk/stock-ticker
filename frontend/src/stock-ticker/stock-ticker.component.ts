@@ -1,6 +1,6 @@
 // https://magisterrex.files.wordpress.com/2014/07/stocktickerrules.pdf
 
-import { Component, computed, effect, input, Input, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, input, Input, model, OnDestroy, OnInit, Signal, signal } from '@angular/core';
 import { Util } from '@hawryschuk-common/util';
 import { ServiceCenterClient, Terminal } from '@hawryschuk-terminal-restapi';
 import { StockTicker, Trade, GamePlay } from '../../../StockTicker';
@@ -15,39 +15,29 @@ import { CommonModule } from '@angular/common';
   standalone: true,
 })
 export class StockTickerComponent implements OnDestroy {
-  private updated$ = signal<Date | undefined>(undefined);
+  StockTicker = StockTicker;
+  terminal = input.required<Terminal>();
+  trades: Trade[] = StockTicker.STOCKS.map(stock => <Trade>{ type: 'buy', stock, shares: 0 });
+  private terminalSubscriptions = new Map<Terminal, { unsubscribe: Function }>;
+  private updated$ = signal(new Date);
+
+  get client() { return ServiceCenterClient.getInstance<GamePlay>(this.terminal()); }
+  get game() { return this.game$() }; private game$ = computed(() => {
+    const { users, messages } = this.updated$() && this.client.Service?.Instance || {};
+    return users && messages ? new StockTicker(users, messages) : undefined;
+  });
 
   constructor() {
     Object.assign(window, { stockticker: this });
     effect(() => {
-      this.updated$.set(new Date);
-      this.ngOnDestroy = this.terminal()
-        .subscribe({ handler: () => this.updated$.set(new Date) })
-        .unsubscribe;
+      if (this.terminal() && !this.terminalSubscriptions.has(this.terminal()))
+        this.terminalSubscriptions.set(this.terminal(), this.terminal().subscribe({
+          handler: () => this.updated$.set(new Date)
+        }));
     }, { allowSignalWrites: true });
   }
 
-  StockTicker = StockTicker;
-
-  terminal = input.required<Terminal>();
-
-  trades: Trade[] = StockTicker.STOCKS.map(stock => <Trade>{ type: 'buy', stock, shares: 0 });
-
-  get client() { return this.client$(); }
-  private client$ = computed(() => ServiceCenterClient.getInstance<GamePlay>(this.terminal()));
-
-  get game() { return this.game$() }
-  private game$ = computed(() => {
-    const players = this.client.Service?.Instance?.users;
-    const messages = this.client.Service?.Instance?.messages;
-    return this.updated$() && players && messages
-      ? new StockTicker(players, messages)
-      : undefined;
-  });
-
-  // get Game() { return new StockTicker(this.client.Service?.Instance?.users!, this.client.ServiceMessages) }
-
-  ngOnDestroy(): void { };
+  ngOnDestroy() { [...this.terminalSubscriptions.values()].forEach(s => s.unsubscribe()); }
 
   async SubmitTrade() {
     await this.terminal().respond(JSON.stringify(this.trades.filter(t => t.shares)), 'trades');

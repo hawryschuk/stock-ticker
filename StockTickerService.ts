@@ -11,7 +11,7 @@ export class StockTickerService<T = any> extends BaseService {
 
     async start() {
         while (true) {
-            const instance = Util.findWhere(ServiceCenterClient.getInstance<GamePlay>(this.terminals[0]).ServiceInstances, { id: this.id });
+            const instance = ServiceCenterClient.getInstance<GamePlay>(this.terminals[0]).ServiceInstance;
             const { game, trades } = (await Util.waitUntil(async () => Util.safelyAsync(async () => {
                 const game = new StockTicker(this.table.sitting.map(t => t.input.Name), instance!.messages);
                 const trades = game.trades = JSON.parse(await this.prompt({
@@ -33,5 +33,4 @@ export class StockTickerService<T = any> extends BaseService {
                 };
         }
     }
-
 }

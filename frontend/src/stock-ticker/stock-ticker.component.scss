@@ -1,3 +1,41 @@
+:host {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.results {}
+
+.wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+}
+
+table.history {
+    height: auto;
+    min-width: 300px;
+
+    &,
+    tbody,
+    caption,
+    tr,
+    th,
+    td {
+        border: 1px solid black;
+    }
+
+    tbody {
+        overflow: auto;
+    }
+
+    tfoot {
+        height: 100%;
+    }
+
+}
+
 .last {
     font-weight: bold;
 }
@@ -11,6 +49,7 @@
 }
 
 #state {
+
     th,
     td {
         text-align: left;

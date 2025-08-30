@@ -1,5 +1,5 @@
 <div id="results">
-    <div class="game-over" *ngIf="client.ServiceEnded"> Game Over!! </div>
+    <div class="game-over" *ngIf="client.Service?.Instance?.finished"> Game Over!! </div>
     <div class="won" *ngIf="client.Won"> You won !! </div>
     <div class="won" *ngIf="client.Lost"> You lost! </div>
 </div>

@@ -39,7 +39,10 @@ export class StockTickerComponent implements OnDestroy {
   get game() { return this.game$() }
   private game$ = computed(() => {
     const players = this.client.Service?.Instance?.users;
-    return this.updated$() && players ? new StockTicker(players, this.client.ServiceMessages) : undefined;
+    const messages = this.client.Service?.Instance?.messages;
+    return this.updated$() && players && messages
+      ? new StockTicker(players, messages)
+      : undefined;
   });
 
   // get Game() { return new StockTicker(this.client.Service?.Instance?.users!, this.client.ServiceMessages) }

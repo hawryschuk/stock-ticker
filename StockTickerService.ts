@@ -3,7 +3,7 @@ import { BaseService, Prompt, ServiceCenterClient, Terminal } from "@hawryschuk-
 import { StockTicker, GamePlay, Trade } from "./StockTicker";
 
 /** Stock-Ticker : spot prices, player assets */
-export class StockTickerService extends BaseService {
+export class StockTickerService<T = any> extends BaseService {
     static override USERS = '*' as '*';
     static override NAME = 'Stock Ticker';
     static override ALL_SERVICE_MESSAGES_BROADCASTED = true;
@@ -11,25 +11,19 @@ export class StockTickerService extends BaseService {
 
     async start() {
         while (true) {
-            const { trades, roll, turn, winners } = (await Util.waitUntil(async () => {
-                const { ServiceMessages } = ServiceCenterClient.getInstance<GamePlay>(this.terminals[0]);               // all information for this service is public , zero private information
-                const game = new StockTicker(this.table.sitting.map(t => t.input.Name), ServiceMessages);
-                const { roll } = game;
-                const trades = await (async () => {
-                    try {
-                        return game.trades = JSON.parse(await this.prompt({
-                            terminal: this.terminals[game.turn - 1],
-                            name: 'trades',
-                            type: 'text',
-                            clobber: true,
-                        })) as Trade[];
-                    } catch (e) { return undefined; }
-                })();
-                game.roll = roll;
-                const { turn, winners } = game;
-                return { trades, roll, turn, winners }
-            }))!;
-
+            const instance = Util.findWhere(ServiceCenterClient.getInstance<GamePlay>(this.terminals[0]).ServiceInstances, { id: this.id });
+            const { game, trades } = (await Util.waitUntil(async () => Util.safelyAsync(async () => {
+                const game = new StockTicker(this.table.sitting.map(t => t.input.Name), instance!.messages);
+                const trades = game.trades = JSON.parse(await this.prompt({
+                    terminal: this.terminals[game.turn - 1],
+                    name: 'trades',
+                    type: 'text',
+                    clobber: true,
+                }));
+                return { game, trades };
+            }))!);
+            const { roll } = game; game.roll = roll;
+            const { turn, winners } = game;
             await this.broadcast<GamePlay>({ trades, roll });
             await this.broadcast<GamePlay>({ turn });
             if (winners)

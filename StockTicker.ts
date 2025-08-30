@@ -31,6 +31,7 @@ export class StockTicker {
     prices: Record<string, number> = StockTicker.STOCKS.reduce((prices, name) => ({ ...prices, [name]: 1 }), {});
 
     constructor(players: string[], actions: GamePlay[] = []) {
+        if (players.length === 0) debugger;
         this.players = players.map(name => new Player(name, this.prices));
         for (const { turn, trades, roll } of actions) {
             if (turn) this.turn = turn;

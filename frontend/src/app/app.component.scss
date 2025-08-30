@@ -1,12 +1,35 @@
-.container {
+:host {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 20px);
-    width: calc(100vw - 20px);
+    height: 100vh; // Changed from 100% to 100vh for full viewport height
+    width: 100%;
+    box-sizing: border-box;
+}
 
-    app-table-service {
-        height: 30vh;
-        flex: 1;
+app-service-center {
+    flex: 1;
+}
+
+#terminals {
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    width: 100%;
+    justify-content: flex-end; // Add this line to bottom-align content
+
+    .list button {
+        min-width: 100px;
+
+        &.add {
+            min-width: 50px;
+        }
+
+        &[disabled] {
+            font-weight: bold;
+            font-size: larger;
+            color: black;
+            background-color: white;
+        }
     }
 
     app-terminal {

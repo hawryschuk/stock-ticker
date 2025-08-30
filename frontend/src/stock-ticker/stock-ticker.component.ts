@@ -1,6 +1,6 @@
 // https://magisterrex.files.wordpress.com/2014/07/stocktickerrules.pdf
 
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, computed, effect, input, Input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Util } from '@hawryschuk-common/util';
 import { ServiceCenterClient, Terminal } from '@hawryschuk-terminal-restapi';
 import { StockTicker, Trade, GamePlay } from '../../../StockTicker';
@@ -14,34 +14,47 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./stock-ticker.component.scss'],
   standalone: true,
 })
-export class StockTickerComponent implements OnInit, OnDestroy {
+export class StockTickerComponent implements OnDestroy {
+  private updated$ = signal<Date | undefined>(undefined);
 
-  @Input({ required: true }) terminal!: Terminal;
+  constructor() {
+    Object.assign(window, { stockticker: this });
+    effect(() => {
+      this.updated$.set(new Date);
+      this.ngOnDestroy = this.terminal()
+        .subscribe({ handler: () => this.updated$.set(new Date) })
+        .unsubscribe;
+    }, { allowSignalWrites: true });
+  }
 
   StockTicker = StockTicker;
-  game?: StockTicker;
+
+  terminal = input.required<Terminal>();
+
   trades: Trade[] = StockTicker.STOCKS.map(stock => <Trade>{ type: 'buy', stock, shares: 0 });
-  get client() { return ServiceCenterClient.getInstance<GamePlay>(this.terminal); }
-  private get Game() { return this.client.Table ? new StockTicker(this.client.Table!.sitting, this.client.ServiceMessages) : undefined }
+
+  get client() { return this.client$(); }
+  private client$ = computed(() => ServiceCenterClient.getInstance<GamePlay>(this.terminal()));
+
+  get game() { return this.game$() }
+  private game$ = computed(() => {
+    const players = this.client.Service?.Instance?.users;
+    return this.updated$() && players ? new StockTicker(players, this.client.ServiceMessages) : undefined;
+  });
+
+  // get Game() { return new StockTicker(this.client.Service?.Instance?.users!, this.client.ServiceMessages) }
 
   ngOnDestroy(): void { };
 
-  ngOnInit() {
-    Object.assign(window, { app: this });
-    this.ngOnDestroy = this.terminal
-      .subscribe({ handler: () => this.game = this.Game })
-      .unsubscribe;
-  }
-
   async SubmitTrade() {
-    await this.terminal.respond(JSON.stringify(this.trades.filter(t => t.shares)), 'trades');
+    await this.terminal().respond(JSON.stringify(this.trades.filter(t => t.shares)), 'trades');
     for (const trade of this.trades)
       Object.assign(trade, { shares: 0, type: 'buy' });
   }
 
   async testTrade(trade: Trade) {
     await Util.pause(100);
-    try { this.Game!.trades = this.trades; }
+    try { this.game!.trades = this.trades; }
     catch (e) {
       alert(e);
       trade.shares = 0;

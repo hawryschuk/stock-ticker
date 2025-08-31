@@ -1,6 +1,17 @@
 import { Util } from "@hawryschuk-common/util";
-import { BaseService, ServiceCenterClient } from "@hawryschuk-terminal-restapi";
-import { StockTicker, GamePlay } from "./StockTicker";
+import { BaseService, Prompt, ServiceCenterClient, Terminal } from "@hawryschuk-terminal-restapi";
+import { StockTicker, GamePlay, Trade } from "./StockTicker";
+import { ServiceRobot } from "@hawryschuk-terminal-restapi/ServiceRobot";
+
+export class StockTickerRobot extends ServiceRobot {
+    constructor(terminal: Terminal) { super(terminal); }
+    async handlePrompts(prompts: Record<string, Prompt[]>): Promise<void> {
+        if (prompts.trades) {
+            const trade: Trade = { type: 'buy', stock: 'gold', shares: 1 };
+            await this.terminal.answer({ trades: JSON.stringify([trade]) });
+        }
+    }
+}
 
 /** Stock-Ticker : spot prices, player assets */
 export class StockTickerService<T = any> extends BaseService {
@@ -8,6 +19,7 @@ export class StockTickerService<T = any> extends BaseService {
     static override NAME = 'Stock Ticker';
     static override ALL_SERVICE_MESSAGES_BROADCASTED = true;
     static override CAN_RECONSTRUCT_STATE_FROM_SERVICE_MESSAGES = true;
+    static override ROBOT = StockTickerRobot;
 
     async start() {
         while (true) {

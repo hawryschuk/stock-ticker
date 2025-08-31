@@ -21,7 +21,7 @@
                         <th *ngFor="let stock of StockTicker.STOCKS"
                             [attr.data-sign]="game.rolls.at(-1)?.stock==stock ? game.rolls.at(-1)?.movement!>0 ? 1 : -1 : 0"
                             [class.last]="game.rolls.at(-1)?.stock==stock">
-                            {{game.prices[stock]}}
+                            {{ game.prices[stock]  | number:'1.2-2' }}
                         </th>
                     </tr>
                 </thead>
@@ -76,12 +76,6 @@
                         <td> {{roll.stock}} </td>
                         <td> {{roll.movement}} </td>
                         <td> {{roll.dividend}} </td>
-                    </tr>
-                    <tr *ngFor="let i of [].constructor(40); let index = index">
-                        <td> {{index}} </td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
                     </tr>
                 </tbody>
             </table>

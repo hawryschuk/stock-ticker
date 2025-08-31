@@ -95,14 +95,14 @@ export class StockTicker {
     }
 
     get winners(): number[] | undefined {
-        return this.players.every(p => p.turns >= 50)
+        return this.players.every(p => p.turns >= 5)
             ? (() => {
-                const players = this
-                    .players
-                    .sort((a, b) => b.worth - a.worth);
+                const players = [...this.players].sort((a, b) => b.worth - a.worth);
                 const [{ worth }] = players;    // highest net worth
-                return Util.where(players, { worth })
-                    .map(p => this.players.indexOf(p))
+                const indexes = Util
+                    .where(players, { worth })
+                    .map(p => this.players.indexOf(p));
+                return indexes;
             })()
             : undefined;
     }

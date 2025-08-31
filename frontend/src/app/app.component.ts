@@ -23,6 +23,9 @@ export class AppComponent implements OnInit {
 
   async ngOnInit() {
     Object.assign(window, { app: this });
+
+
+    /** User: Alex : Startsd a 1 person game of stock ticker */
     await this.serviceCenter.join(this.terminal);
     await this.terminal.answer({
       name: 'alex',
@@ -34,10 +37,10 @@ export class AppComponent implements OnInit {
       ],
       seats: 1
     });
-    await Util.waitUntil(() => this.client.Service?.Instance);
-    return;
 
-    await Util.pause(1000);
+    // return;
+    /** Player: Liujing : Joins Alex's table mid-way through his game */
+    // await Util.pause(1000);
     this.terminals.push(this.terminal = new Terminal);
     await this.serviceCenter.join(this.terminal);
     const table = await Util.waitUntil(() => this.client.Tables[0]);
@@ -47,5 +50,24 @@ export class AppComponent implements OnInit {
       menu: 'Join Table',
       table: table.id
     });
+
+    // return;
+
+    /** Player: Denise : Starts a 2 person game of stock ticker with the robot */
+    this.terminals.push(this.terminal = new Terminal);
+    await this.serviceCenter.join(this.terminal);
+    await this.terminal.answer({
+      name: 'denise',
+      service: 'Stock Ticker',
+      menu: [
+        'Create Table',
+        'Sit',
+        'Invite Robot',
+        'Ready'
+      ],
+      seats: 2,
+      trades: new Array(10).fill(JSON.stringify([{ type: 'buy', stock: 'silver', shares: 2 }]))
+    });
+
   }
 }

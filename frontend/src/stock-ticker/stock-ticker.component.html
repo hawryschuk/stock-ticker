@@ -10,31 +10,37 @@
             <table style="width: 100%; ">
                 <thead id="stocks">
                     <tr>
-                        <td colspan=3></td>
+                        <td colspan=2></td>
                         <th *ngFor="let stock of StockTicker.STOCKS"> {{stock}} </th>
                     </tr>
                 </thead>
 
                 <thead class="prices">
                     <tr>
-                        <td colspan=3></td>
+                        <th colspan=2></th>
                         <th *ngFor="let stock of StockTicker.STOCKS"
                             [attr.data-sign]="game.rolls.at(-1)?.stock==stock ? game.rolls.at(-1)?.movement!>0 ? 1 : -1 : 0"
                             [class.last]="game.rolls.at(-1)?.stock==stock">
-                            {{ game.prices[stock]  | number:'1.2-2' }}
+                            {{ game.prices[stock] | number:'1.2-2' }}
                         </th>
                     </tr>
                 </thead>
 
+                <thead>
+                    <th> Player </th>
+                    <th> Cash </th>
+                    <th [attr.colspan]="StockTicker.STOCKS.length"></th>
+                    <th> Net Worth </th>
+                </thead>
                 <tbody id="players">
                     <ng-container *ngFor="let player of game.players">
                         <tr [class.turn]="game.player==player">
                             <td class="name"> {{player.name}} </td>
-                            <td>{{player.cash}}</td>
-                            <td>{{player.worth}}</td>
+                            <td>{{player.cash | number:'1.2-2' }}</td>
                             <td *ngFor="let stock of StockTicker.STOCKS" class="shares">
                                 {{player.stocks[stock]}}
                             </td>
+                            <td>{{player.worth | number:'1.2-2' }}</td>
                         </tr>
 
                         <tr *ngIf="game.player==player && terminal()!.prompts.trades && game.player.stocks">

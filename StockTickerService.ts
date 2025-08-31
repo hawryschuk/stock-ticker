@@ -1,6 +1,6 @@
 import { Util } from "@hawryschuk-common/util";
-import { BaseService, Prompt, ServiceCenterClient, Terminal } from "@hawryschuk-terminal-restapi";
-import { StockTicker, GamePlay, Trade } from "./StockTicker";
+import { BaseService, ServiceCenterClient } from "@hawryschuk-terminal-restapi";
+import { StockTicker, GamePlay } from "./StockTicker";
 
 /** Stock-Ticker : spot prices, player assets */
 export class StockTickerService<T = any> extends BaseService {

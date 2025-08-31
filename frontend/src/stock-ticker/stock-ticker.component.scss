@@ -5,17 +5,7 @@
     flex-direction: column;
 }
 
-.results {}
-
-.wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: row;
-}
-
-table.history {
-    height: auto;
-    min-width: 300px;
+table {
 
     &,
     tbody,
@@ -25,38 +15,48 @@ table.history {
     td {
         border: 1px solid black;
     }
+}
 
-    tbody {
-        overflow: auto;
-    }
+.results {}
 
-    tfoot {
+.wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+
+    .history {
         height: 100%;
+        overflow: auto;
+
+        .history {}
     }
 
-}
+    .state {
+        flex: 1;
 
-.last {
-    font-weight: bold;
-}
+        th,
+        td {
+            text-align: left;
+        }
 
-[data-sign="-1"] {
-    background-color: red;
-}
+        .prices {
+            .last {
+                font-weight: bold;
+            }
 
-[data-sign="1"] {
-    background-color: green;
-}
+            [data-sign="-1"] {
+                background-color: red;
+            }
 
-#state {
+            [data-sign="1"] {
+                background-color: green;
+            }
+        }
 
-    th,
-    td {
-        text-align: left;
+        .trades button.selected {
+            font-weight: bold;
+            background-color: burlywood;
+        }
     }
-}
 
-#trades button.selected {
-    font-weight: bold;
-    background-color: burlywood;
 }

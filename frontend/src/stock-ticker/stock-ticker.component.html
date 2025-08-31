@@ -1,81 +1,90 @@
-<div class="results">
-    <div class="game-over" *ngIf="client.Service?.Instance?.finished"> Game Over!! </div>
-    <div class="won" *ngIf="client.Won"> You won !! </div>
-    <div class="won" *ngIf="client.Lost"> You lost! </div>
-</div>
+<form *ngIf="game" #form="ngForm" style="flex:1; height: 100%; display: flex;">
+    <div class="results">
+        <div class="game-over" *ngIf="client.Service?.Instance?.finished"> Game Over!! </div>
+        <div class="won" *ngIf="client.Won"> You won !! </div>
+        <div class="won" *ngIf="client.Lost"> You lost! </div>
+    </div>
 
-<div class="wrapper">
-    <form *ngIf="game" #form="ngForm" style="flex:1">
-        <table id="state">
-            <thead id="stocks">
-                <caption>stocks</caption>
-                <tr>
-                    <td colspan=3></td>
-                    <th *ngFor="let stock of StockTicker.STOCKS"> {{stock}} </th>
-                </tr>
-            </thead>
+    <div class="wrapper">
+        <div class="state" style="overflow: auto;">
+            <table style="width: 100%; ">
+                <thead id="stocks">
+                    <tr>
+                        <td colspan=3></td>
+                        <th *ngFor="let stock of StockTicker.STOCKS"> {{stock}} </th>
+                    </tr>
+                </thead>
 
-            <thead id="prices">
-                <caption>prices</caption>
-                <tr>
-                    <td colspan=3></td>
-                    <th *ngFor="let stock of StockTicker.STOCKS"
-                        [attr.data-sign]="game.rolls.at(-1)?.stock==stock ? game.rolls.at(-1)?.movement!>0 ? 1 : -1 : 0"
-                        [class.last]="game.rolls.at(-1)?.stock==stock">
-                        {{game.prices[stock]}}
-                    </th>
-                </tr>
-            </thead>
+                <thead class="prices">
+                    <tr>
+                        <td colspan=3></td>
+                        <th *ngFor="let stock of StockTicker.STOCKS"
+                            [attr.data-sign]="game.rolls.at(-1)?.stock==stock ? game.rolls.at(-1)?.movement!>0 ? 1 : -1 : 0"
+                            [class.last]="game.rolls.at(-1)?.stock==stock">
+                            {{game.prices[stock]}}
+                        </th>
+                    </tr>
+                </thead>
 
-            <tbody id="players">
-                <caption>players</caption>
-                <tr [class.turn]="game.player==player" *ngFor="let player of game.players">
-                    <td class="name"> {{player.name}} </td>
-                    <td>{{player.cash}}</td>
-                    <td>{{player.worth}}</td>
-                    <td *ngFor="let stock of StockTicker.STOCKS" class="shares">
-                        {{player.stocks[stock]}}
-                    </td>
-                </tr>
-            </tbody>
-            <tfoot id="trades" *ngIf="terminal()!.prompts.trades && game.player.stocks">
-                <tr>
-                    <td colspan=3> <button (click)="SubmitTrade()"> Submit Trade </button> </td>
-                    <td *ngFor="let trade of trades">
-                        <div>
-                            <button *ngFor="let tt of StockTicker.TRADE_TYPES"
-                                [disabled]="tt=='sell' && !game.player.stocks[trade.stock]"
-                                (click)="trade.type!=tt && ( (trade.type=tt) && (trade.shares=0) )"
-                                [class.selected]="trade.type==tt"> {{tt}}
-                            </button>
-                        </div>
+                <tbody id="players">
+                    <ng-container *ngFor="let player of game.players">
+                        <tr [class.turn]="game.player==player">
+                            <td class="name"> {{player.name}} </td>
+                            <td>{{player.cash}}</td>
+                            <td>{{player.worth}}</td>
+                            <td *ngFor="let stock of StockTicker.STOCKS" class="shares">
+                                {{player.stocks[stock]}}
+                            </td>
+                        </tr>
 
-                        <input (ngModelChange)="testTrade(trade)" type="number" name="shares" [(ngModel)]="trade.shares"
-                            [min]="0"
-                            [max]="trade.type=='buy' ? game.player.cash / game.prices[trade.stock] : game.player.stocks[trade.stock]">
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
-    </form>
-    <table class="history" *ngIf="game">
-        <caption> roll history </caption>
-        <thead>
-            <tr>
-                <th> player </th>
-                <th> stock </th>
-                <th> movement </th>
-                <th> dividend </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let roll of game.rolls; let index=index">
-                <td> {{ game.players[ index % game.players.length ].name }} </td>
-                <td> {{roll.stock}} </td>
-                <td> {{roll.movement}} </td>
-                <td> {{roll.dividend}} </td>
-            </tr>
-        </tbody>
-        <tfoot></tfoot>
-    </table>
-</div>
+                        <tr *ngIf="game.player==player && terminal()!.prompts.trades && game.player.stocks">
+                            <td colspan=3> <button (click)="SubmitTrade()"> Submit Trade </button> </td>
+                            <td *ngFor="let trade of trades">
+                                <div>
+                                    <button *ngFor="let tt of StockTicker.TRADE_TYPES"
+                                        [disabled]="tt=='sell' && !game.player.stocks[trade.stock]"
+                                        (click)="trade.type!=tt && ( (trade.type=tt) && (trade.shares=0) )"
+                                        [class.selected]="trade.type==tt"> {{tt}}
+                                    </button>
+                                </div>
+
+                                <input (ngModelChange)="testTrade(trade)" type="number" name="shares"
+                                    [(ngModel)]="trade.shares" [min]="0"
+                                    [max]="trade.type=='buy' ? game.player.cash / game.prices[trade.stock] : game.player.stocks[trade.stock]">
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+
+            </table>
+        </div>
+
+        <div class="history">
+            <table>
+                <caption> roll history </caption>
+                <thead>
+                    <tr>
+                        <th> player </th>
+                        <th> stock </th>
+                        <th> movement </th>
+                        <th> dividend </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let roll of game.rolls; let index=index">
+                        <td> {{ game.players[ index % game.players.length ].name }} </td>
+                        <td> {{roll.stock}} </td>
+                        <td> {{roll.movement}} </td>
+                        <td> {{roll.dividend}} </td>
+                    </tr>
+                    <tr *ngFor="let i of [].constructor(40); let index = index">
+                        <td> {{index}} </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>

@@ -45,7 +45,7 @@ export class AppComponent implements OnInit {
     await this.serviceCenter.join(this.terminal);
     const table = await Util.waitUntil(() => this.client.Tables[0]);
     await this.terminal.answer({
-      name: 'liujing',
+      name: 'michael',
       service: 'Stock Ticker',
       menu: 'Join Table',
       table: table.id
@@ -53,20 +53,26 @@ export class AppComponent implements OnInit {
 
     // return;
 
-    /** Player: Denise : Starts a 2 person game of stock ticker with the robot */
+    /** New Player : Starts a 2 person game of stock ticker with the robot 
+     * - and sends a message to alex
+    */
     this.terminals.push(this.terminal = new Terminal);
     await this.serviceCenter.join(this.terminal);
     await this.terminal.answer({
-      name: 'denise',
+      name: 'paula',
       service: 'Stock Ticker',
       menu: [
         'Create Table',
         'Sit',
         'Invite Robot',
-        'Ready'
+        // 'Ready',
+        // 'Direct Message',
+        // 'Direct Message'
       ],
       seats: 2,
-      trades: new Array(10).fill(JSON.stringify([{ type: 'buy', stock: 'silver', shares: 2 }]))
+      // to: ['alex', 'michael'],
+      // message: ['hi alex', 'hi michael']
+      // trades: new Array(10).fill(JSON.stringify([{ type: 'buy', stock: 'silver', shares: 2 }]))
     });
 
   }

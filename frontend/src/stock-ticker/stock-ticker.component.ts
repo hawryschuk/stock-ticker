@@ -6,6 +6,7 @@ import { ServiceCenterClient, Terminal } from '@hawryschuk-terminal-restapi';
 import { StockTicker, Trade, GamePlay } from '../../../StockTicker';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { onTerminalUpdated } from '@hawryschuk-terminal-restapi/frontend/src/app/terminal/onTerminalUpdated';
 
 @Component({
   imports: [CommonModule, FormsModule],
@@ -14,11 +15,10 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./stock-ticker.component.scss'],
   standalone: true,
 })
-export class StockTickerComponent implements OnDestroy {
+export class StockTickerComponent {
   StockTicker = StockTicker;
   terminal = input.required<Terminal>();
   trades: Trade[] = StockTicker.STOCKS.map(stock => <Trade>{ type: 'buy', stock, shares: 0 });
-  private terminalSubscriptions = new Map<Terminal, { unsubscribe: Function }>;
   private updated$ = signal(new Date);
 
   get client() { return ServiceCenterClient.getInstance<GamePlay>(this.terminal()); }
@@ -29,15 +29,8 @@ export class StockTickerComponent implements OnDestroy {
 
   constructor() {
     Object.assign(window, { stockticker: this });
-    effect(() => {
-      if (this.terminal() && !this.terminalSubscriptions.has(this.terminal()))
-        this.terminalSubscriptions.set(this.terminal(), this.terminal().subscribe({
-          handler: () => this.updated$.set(new Date)
-        }));
-    }, { allowSignalWrites: true });
+    onTerminalUpdated({ component: this, handler: () => this.updated$.set(new Date), terminal: this.terminal });
   }
-
-  ngOnDestroy() { [...this.terminalSubscriptions.values()].forEach(s => s.unsubscribe()); }
 
   async SubmitTrade() {
     await this.terminal().respond(JSON.stringify(this.trades.filter(t => t.shares)), 'trades');

@@ -6,9 +6,9 @@
 - <a href=stocktickerrules.pdf> Rules </a>
 - <a href=sample> GUI Sample </a>
 
+## Class Diagram
 ```plantuml
 @startuml
-title Stock Ticker – Class Diagram
 
 class Game {
   +timeLimit: Duration
@@ -100,9 +100,9 @@ end note
 
 ```
 
+## Sequence Diagram
 ```plantuml
 @startuml
-title Stock Ticker – Sequence Diagram (One Turn)
 
 actor Player
 participant "Trading Window" as TW
@@ -152,6 +152,7 @@ Broker -> Player: pass dice to next player
 
 ```
 
+## Activity Diagram
 ```plantuml
 @startuml
 [*] --> GameStart
@@ -179,3 +180,6 @@ GameStart --> GameEnd : Forced stop
 GameEnd --> [*]
 @enduml
 ```
+
+## Physical Board Game
+<img src=Stock_Ticker.jpg>
